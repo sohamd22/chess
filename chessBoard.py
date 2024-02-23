@@ -1,6 +1,7 @@
 from pieces import *
 from collections import defaultdict
 import copy
+import csv
 
 SIZE = 8
 
@@ -130,7 +131,17 @@ class ChessBoard:
                     value += piece.color
         value += -self.check * 30
         return value
-        
+
+    def encode(self):
+        encodedBoard = ""
+        for row in self.board:
+            for piece in row:
+                if(not(piece)):
+                    encodedBoard += "_"
+                    continue
+                encodedBoard += piece.notation
+        return encodedBoard
+
     def minimax(self):
         if(self.player == 1):
             return self.maximize(self, 1, -1000000, 1000000)[1]
@@ -138,14 +149,41 @@ class ChessBoard:
 
     def maximize(self, board, currentDepth, alpha, beta):
         if(board.terminal() or currentDepth == DEPTH):
-            return [board.utility(), None]
+            dataR = open("data.csv", "r", newline = "")
+            data_reader = csv.reader(dataR)
+            encodedBoard = board.encode()
+            for row in data_reader:
+                if(row[0] == encodedBoard):
+                    dataR.close()
+                    return [row[1], None]
+            dataR.close()
+            utility = board.utility()
+            dataA = open("data.csv", "a", newline = "")
+            data_writer = csv.writer(dataA)
+            data_writer.writerow([encodedBoard, utility])
+            dataA.close()
+            
+            return [utility, None]
 
         actionSet = board.actions()
         currentMaximum = [-1000000, None]
         for action in actionSet:
             result = board.result(action[0], action[1])
             if(result):
-                bestPossibility = board.minimize(result, currentDepth + 1, alpha, beta)
+                dataR = open("data.csv", "r", newline = "")
+                data_reader = csv.reader(dataR)
+                bestPossibility = None
+                encodedResult = result.encode()
+                for row in data_reader:
+                    if(row[0] == encodedResult):
+                        bestPossibility = [float(row[1]), action]
+                dataR.close()
+                if(not(bestPossibility)):
+                    dataA = open("data.csv", "a", newline = "")
+                    bestPossibility = board.minimize(result, currentDepth + 1, alpha, beta)
+                    data_writer = csv.writer(dataA)
+                    data_writer.writerow([encodedResult, bestPossibility[0]])
+                    dataA.close()
                 if(bestPossibility[0] > currentMaximum[0]):
                     alpha = max(alpha, bestPossibility[0])
                     currentMaximum[0] = bestPossibility[0]
@@ -156,18 +194,44 @@ class ChessBoard:
     
     def minimize(self, board, currentDepth, alpha, beta):
         if(board.terminal() or currentDepth == DEPTH):
-            return [board.utility(), None]
+            dataR = open("data.csv", "r", newline = "")
+            data_reader = csv.reader(dataR)
+            encodedBoard = board.encode()
+            for row in data_reader:
+                if(row[0] == encodedBoard):
+                    dataR.close()
+                    return [row[1], None]
+            dataR.close()
+            dataA = open("data.csv", "a", newline = "")
+            utility = board.utility()
+            data_writer = csv.writer(dataA)
+            data_writer.writerow([encodedBoard, utility])
+            dataA.close()
+            
+            return [utility, None]
 
         actionSet = board.actions()
         currentMinimum = [1000000, None]
         for action in actionSet:
             result = board.result(action[0], action[1])
             if(result):
-                bestPossibility = board.maximize(result, currentDepth + 1, alpha, beta)
+                dataR = open("data.csv", "r", newline = "")
+                data_reader = csv.reader(dataR)
+                bestPossibility = None
+                encodedResult = result.encode()
+                for row in data_reader:
+                    if(row[0] == encodedResult):
+                        bestPossibility = [float(row[1]), row[0]]
+                dataR.close()
+                if(not(bestPossibility)):
+                    dataA = open("data.csv", "a", newline = "")
+                    bestPossibility = board.maximize(result, currentDepth + 1, alpha, beta)
+                    data_writer = csv.writer(dataA)
+                    data_writer.writerow([encodedResult, bestPossibility[0]])
+                    dataA.close()
+                
                 if(bestPossibility[0] < currentMinimum[0]):
                     beta = min(beta, bestPossibility[0])
-                    if(beta <= alpha):
-                        break
                     currentMinimum[0] = bestPossibility[0]
                     currentMinimum[1] = action
                 if(currentMinimum[0] == -1000000 or beta <= alpha):
