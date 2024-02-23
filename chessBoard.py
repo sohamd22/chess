@@ -73,7 +73,10 @@ class ChessBoard:
             piece.range = 1
 
             if(piece.color == -1 and piece.position[0] == 0 or piece.color == 1 and piece.position[0] == (SIZE - 1)):
-                newBoard.board[piece.position[0]][piece.position[1]] = Queen(piece.color, piece.position[0], piece.position[1])
+                newPiece = Queen(piece.color, piece.position[0], piece.position[1])
+                newBoard.pieces[newBoard.player].remove(piece)
+                newBoard.pieces[newBoard.player].append(newPiece)
+                newBoard.board[piece.position[0]][piece.position[1]] = newPiece
         elif(piece.notation.upper() == "K" or piece.notation.upper() == "R"):
             piece.moved = True
 
