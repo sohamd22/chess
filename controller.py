@@ -1,4 +1,4 @@
-import pygame, sys, time
+import pygame, sys
 from chessBoard import ChessBoard
 
 SIZE = 8
